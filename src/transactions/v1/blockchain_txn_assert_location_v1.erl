@@ -314,9 +314,9 @@ is_valid(Txn, Chain) ->
             ExpectedTxnFee = calculate_fee(Txn, Chain),
             case {(ExpectedTxnFee =< TxnFee orelse not AreFeesEnabled), ExpectedStakingFee == StakingFee} of
                 {false,_} ->
-                    {error, {wrong_txn_fee, ExpectedTxnFee, TxnFee}};
+                    {error, {wrong_txn_fee, {ExpectedTxnFee, TxnFee}}};
                 {_,false} ->
-                    {error, {wrong_staking_fee, ExpectedStakingFee, StakingFee}};
+                    {error, {wrong_staking_fee, {ExpectedStakingFee, StakingFee}}};
                 {true, true} ->
                     case blockchain_ledger_v1:check_dc_or_hnt_balance(ActualPayer, TxnFee + StakingFee, Ledger, AreFeesEnabled) of
                         {error, _}=Error ->
@@ -325,7 +325,7 @@ is_valid(Txn, Chain) ->
                             Gateway = ?MODULE:gateway(Txn),
                             case blockchain_gateway_cache:get(Gateway, Ledger) of
                                 {error, _} ->
-                                    {error, {unknown_gateway, Gateway, Ledger}};
+                                    {error, {unknown_gateway, {Gateway, Ledger}}};
                                 {ok, GwInfo} ->
                                     GwOwner = blockchain_ledger_gateway_v2:owner_address(GwInfo),
                                     case Owner == GwOwner of

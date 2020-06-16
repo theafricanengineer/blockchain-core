@@ -1717,7 +1717,7 @@ debit_account(Address, Amount, Nonce, Ledger) ->
                             EntriesCF = entries_cf(Ledger),
                             cache_put(Ledger, EntriesCF, Address, Bin);
                         false ->
-                            {error, {insufficient_balance, Amount, Balance}}
+                            {error, {insufficient_balance, {Amount, Balance}}}
                     end;
                 false ->
                     {error, {bad_nonce, {payment, Nonce, blockchain_ledger_entry_v1:nonce(Entry)}}}
@@ -1741,7 +1741,7 @@ debit_fee_from_account(Address, Fee, Ledger) ->
                     EntriesCF = entries_cf(Ledger),
                     cache_put(Ledger, EntriesCF, Address, Bin);
                 false ->
-                    {error, {insufficient_balance_for_fee, Fee, Balance}}
+                    {error, {insufficient_balance_for_fee, {Fee, Balance}}}
             end
     end.
 
@@ -1754,7 +1754,7 @@ check_balance(Address, Amount, Ledger) ->
             Balance = blockchain_ledger_entry_v1:balance(Entry),
             case (Balance - Amount) >= 0 of
                 false ->
-                    {error, {insufficient_balance, Amount, Balance}};
+                    {error, {insufficient_balance, {Amount, Balance}}};
                 true ->
                     ok
             end
@@ -1809,7 +1809,7 @@ debit_dc(Address, Nonce, Amount, Ledger) ->
                     EntriesCF = dc_entries_cf(Ledger),
                     cache_put(Ledger, EntriesCF, Address, Bin);
                 false ->
-                    {error, {insufficient_dc_balance, Amount, Balance}}
+                    {error, {insufficient_dc_balance, {Amount, Balance}}}
             end
         end,
 
@@ -1858,7 +1858,7 @@ debit_fee(Address, Fee, Ledger, MaybeTryImplicitBurn) ->
                     {ok, FeeInHNT} = ?MODULE:dc_to_hnt(Fee, Ledger),
                     ?MODULE:debit_fee_from_account(Address, FeeInHNT, Ledger);
                 {false, false} ->
-                    {error, {insufficient_balance, Fee, Balance}}
+                    {error, {insufficient_balance, {Fee, Balance}}}
             end
     end.
 
@@ -1873,7 +1873,7 @@ check_dc_balance(Address, Amount, Ledger) ->
             Balance = blockchain_ledger_data_credits_entry_v1:balance(Entry),
             case (Balance - Amount) >= 0 of
                 false ->
-                    {error, {insufficient_balance, Amount, Balance}};
+                    {error, {insufficient_dc_balance, {Amount, Balance}}};
                 true ->
                     ok
             end
@@ -1895,7 +1895,7 @@ check_dc_or_hnt_balance(Address, Amount, Ledger, IsFeesEnabled) ->
                 {true, _} ->
                     ok;
                 {false, false} ->
-                    {error, {insufficient_balance, Amount, Balance}};
+                    {error, {insufficient_dc_balance, {Amount, Balance}}};
                 {false, true} ->
                     {ok, AmountInHNT} = ?MODULE:dc_to_hnt(Amount, Ledger),
                     ?MODULE:check_balance(Address, AmountInHNT, Ledger)
@@ -1983,7 +1983,7 @@ debit_security(Address, Amount, Nonce, Ledger) ->
                             SecuritiesCF = securities_cf(Ledger),
                             cache_put(Ledger, SecuritiesCF, Address, Bin);
                         false ->
-                            {error, {insufficient_balance, Amount, Balance}}
+                            {error, {insufficient_security_balance, {Amount, Balance}}}
                     end;
                 false ->
                     {error, {bad_nonce, {payment, Nonce, blockchain_ledger_security_entry_v1:nonce(Entry)}}}
@@ -1999,7 +1999,7 @@ check_security_balance(Address, Amount, Ledger) ->
             Balance = blockchain_ledger_security_entry_v1:balance(Entry),
             case (Balance - Amount) >= 0 of
                 false ->
-                    {error, {insufficient_balance, Amount, Balance}};
+                    {error, {insufficient_security_balance, {Amount, Balance}}};
                 true ->
                     ok
             end
@@ -3171,7 +3171,7 @@ debit_account_test() ->
     ok = commit_context(Ledger1),
     ?assertEqual({error, {bad_nonce, {payment, 0, 0}}}, debit_account(<<"address">>, 1000, 0, Ledger)),
     ?assertEqual({error, {bad_nonce, {payment, 12, 0}}}, debit_account(<<"address">>, 1000, 12, Ledger)),
-    ?assertEqual({error, {insufficient_balance, 9999, 1000}}, debit_account(<<"address">>, 9999, 1, Ledger)),
+    ?assertEqual({error, {insufficient_balance, {9999, 1000}}}, debit_account(<<"address">>, 9999, 1, Ledger)),
     Ledger2 = new_context(Ledger),
     ok = debit_account(<<"address">>, 500, 1, Ledger2),
     ok = commit_context(Ledger2),
@@ -3196,7 +3196,7 @@ debit_fee_test() ->
     Ledger1 = new_context(Ledger),
     ok = credit_dc(<<"address">>, 1000, Ledger1),
     ok = commit_context(Ledger1),
-    ?assertEqual({error, {insufficient_balance, 9999, 1000}}, debit_fee(<<"address">>, 9999, Ledger)),
+    ?assertEqual({error, {insufficient_dc_balance, {9999, 1000}}}, debit_fee(<<"address">>, 9999, Ledger)),
     Ledger2 = new_context(Ledger),
     ok = debit_fee(<<"address">>, 500, Ledger2),
     ok = commit_context(Ledger2),
@@ -3230,7 +3230,7 @@ debit_security_test() ->
     ),
     ?assertEqual({error, {bad_nonce, {payment, 0, 0}}}, debit_security(<<"address">>, 1000, 0, Ledger)),
     ?assertEqual({error, {bad_nonce, {payment, 12, 0}}}, debit_security(<<"address">>, 1000, 12, Ledger)),
-    ?assertEqual({error, {insufficient_balance, 9999, 1000}}, debit_security(<<"address">>, 9999, 1, Ledger)),
+    ?assertEqual({error, {insufficient_security_balance, {9999, 1000}}}, debit_security(<<"address">>, 9999, 1, Ledger)),
     commit(
         fun(L) ->
             ok = debit_security(<<"address">>, 500, 1, L)

@@ -316,9 +316,9 @@ is_valid(Txn, Chain) ->
             ExpectedTxnFee = ?MODULE:calculate_fee(Txn, Chain),
             case {(ExpectedTxnFee =< TxnFee orelse not AreFeesEnabled), ExpectedStakingFee == StakingFee} of
                 {false,_} ->
-                    {error, {wrong_txn_fee, ExpectedTxnFee, TxnFee}};
+                    {error, {wrong_txn_fee, {ExpectedTxnFee, TxnFee}}};
                 {_,false} ->
-                    {error, {wrong_staking_fee, ExpectedStakingFee, StakingFee}};
+                    {error, {wrong_staking_fee, {ExpectedStakingFee, StakingFee}}};
                 {true, true} ->
                     Payer = ?MODULE:payer(Txn),
                     Owner = ?MODULE:owner(Txn),

@@ -213,7 +213,7 @@ do_is_valid_checks(Txn, Chain) ->
                                                             ExpectedTxnFee = ?MODULE:calculate_fee(Txn, Chain),
                                                             case ExpectedTxnFee =< TxnFee orelse not AreFeesEnabled of
                                                                 false ->
-                                                                    {error, {wrong_txn_fee, ExpectedTxnFee, TxnFee}};
+                                                                    {error, {wrong_txn_fee, {ExpectedTxnFee, TxnFee}}};
                                                                 true ->
                                                                     blockchain_ledger_v1:check_dc_or_hnt_balance(Owner, TxnFee, Ledger, AreFeesEnabled)
                                                             end;

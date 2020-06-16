@@ -69,7 +69,7 @@ is_valid(#blockchain_txn_bundle_v1_pb{transactions=Txns}=Txn, Chain) ->
             %% check that the bundle size doesn't exceed allowed max_bundle_size var
             case TxnBundleSize > MaxBundleSize of
                 true ->
-                    {error, {bundle_size_exceeded, TxnBundleSize, MaxBundleSize}};
+                    {error, {bundle_size_exceeded, {TxnBundleSize, MaxBundleSize}}};
                 false ->
                     %% check that there are no bundles in the bundle txn
                     case lists:any(fun(T) ->

@@ -292,7 +292,7 @@ maybe_update_block_height(CurBlockHeight, _BlockHeight, true = _Sync) ->
 maybe_update_block_height(_CurBlockHeight, BlockHeight, _Sync) ->
     BlockHeight.
 
--spec invoke_callback(fun(), ok | {error, invalid} | {error, rejected}) -> ok.
+-spec invoke_callback(fun(), ok | {error, {invalid, atom()}} | {error, {invalid, {any}}} | {error, rejected}) -> ok.
 invoke_callback(Callback, Msg) ->
     spawn(fun() -> Callback(Msg) end),
     ok.
@@ -343,7 +343,7 @@ process_cached_txns(Chain, CurBlockHeight, SubmitF, _Sync, IsNewElection, NewGro
         fun({Txn, #txn_data{acceptions = Acceptions, rejections = Rejections,
                             recv_block_height = RecvBlockHeight, dialers = Dialers,
                             callback = Callback} = TxnData}) ->
-            case {lists:member(Txn, InvalidTransactions), lists:member(Txn, ValidTransactions), IsNewElection} of
+            case {lists:keyfind(Txn, 1, InvalidTransactions), lists:member(Txn, ValidTransactions), IsNewElection} of
                 {false, false, _} ->
                     %% the txn is not in the valid nor the invalid list
                     %% this means the validations cannot decide as yet, such as is the case with a
@@ -353,14 +353,16 @@ process_cached_txns(Chain, CurBlockHeight, SubmitF, _Sync, IsNewElection, NewGro
                     %% who may not yet have responded to any previous submit
                     lager:debug("txn has undecided validations, leaving in cache: ~p", [blockchain_txn:hash(Txn)]),
                     ok;
-                {true, _, _} ->
+                {{Txn, InvalidReason}, _, _} ->
                     %% the txn is invalid, remove from cache and invoke callback
                     %% any txn in the invalid list is considered unrecoverable, it will never become valid
                     %% stop all existing dialers for the txn
-                    lager:debug("txn declared invalid, removing from cache and invoking callback: ~p",[blockchain_txn:hash(Txn)]),
                     lager:info("Invalidated txn: ~p", [blockchain_txn:hash(Txn)]),
                     ok = blockchain_txn_mgr_sup:stop_dialers(Dialers),
-                    ok = invoke_callback(Callback, {error, invalid}),
+
+                    %% invalid txns in the invalid list are a tuple: {Txn, InvalidReason}
+                    lager:info("txn declared invalid with reason ~p, removing from cache and invoking callback: ~p",[InvalidReason, blockchain_txn:hash(Txn)]),
+                    ok = invoke_callback(Callback, {error, {invalid, InvalidReason}}),
                     delete_cached_txn(Txn);
                 {_, true, true} ->
                     %% the txn is valid and a new election has occurred, so keep txn in cache and resubmit
