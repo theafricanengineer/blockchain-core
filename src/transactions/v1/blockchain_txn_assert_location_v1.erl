@@ -287,7 +287,7 @@ is_valid_payer(#blockchain_txn_assert_location_v1_pb{payer=PubKeyBin,
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec is_valid(txn_assert_location(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec is_valid(txn_assert_location(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 is_valid(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     case {?MODULE:is_valid_owner(Txn),
@@ -356,7 +356,7 @@ is_valid(Txn, Chain) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec absorb(txn_assert_location(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec absorb(txn_assert_location(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     AreFeesEnabled = blockchain_ledger_v1:txn_fees_active(Ledger),

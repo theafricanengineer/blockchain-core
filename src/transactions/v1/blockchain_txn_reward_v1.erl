@@ -97,6 +97,9 @@ type(Reward) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
+%% TODO: why is this returning a boolean ?? all other txns return ok | {error.....
+%%       and all callers to is_valid functions are expecting ok, {error.....
+%%       maybe unused?
 -spec is_valid(Reward :: reward()) -> boolean().
 is_valid(#blockchain_txn_reward_v1_pb{account=Account, gateway=Gateway,
                                       amount=Amount, type=Type}) ->

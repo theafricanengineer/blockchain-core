@@ -292,7 +292,7 @@ is_valid_staking_key(#blockchain_txn_add_gateway_v1_pb{payer=Payer}=_Txn, Ledger
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec is_valid(txn_add_gateway(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec is_valid(txn_add_gateway(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 is_valid(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     case {?MODULE:is_valid_owner(Txn),
@@ -336,7 +336,7 @@ is_valid(Txn, Chain) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec absorb(txn_add_gateway(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec absorb(txn_add_gateway(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     AreFeesEnabled = blockchain_ledger_v1:txn_fees_active(Ledger),

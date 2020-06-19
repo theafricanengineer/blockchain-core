@@ -139,7 +139,7 @@ calculate_fee(Txn, Ledger, true) ->
 
 
 
--spec is_valid(txn_update_gateway_oui(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec is_valid(txn_update_gateway_oui(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 is_valid(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     case {validate_oui(Txn, Ledger),
@@ -168,7 +168,7 @@ is_valid(Txn, Chain) ->
             end
     end.
 
--spec absorb(txn_update_gateway_oui(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec absorb(txn_update_gateway_oui(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     Gateway = ?MODULE:gateway(Txn),

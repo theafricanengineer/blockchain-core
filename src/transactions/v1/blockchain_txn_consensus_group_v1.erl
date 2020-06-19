@@ -111,7 +111,7 @@ fee(_Txn) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec is_valid(txn_consensus_group(), blockchain:blockchain()) -> ok.
+-spec is_valid(txn_consensus_group(), blockchain:blockchain()) -> {error, atom()} | {error, {atom(), any()}}.
 is_valid(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     Members = ?MODULE:members(Txn),
@@ -183,7 +183,7 @@ is_valid(Txn, Chain) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec absorb(txn_consensus_group(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec absorb(txn_consensus_group(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Height = ?MODULE:height(Txn),
     Ledger = blockchain:ledger(Chain),

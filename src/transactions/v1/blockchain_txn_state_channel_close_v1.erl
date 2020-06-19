@@ -87,7 +87,7 @@ calculate_fee(_Txn, _Ledger, false) ->
 calculate_fee(_Txn, _Ledger, true) ->
     0.  %% for now we are defaulting close fees to 0
 
--spec is_valid(txn_state_channel_close(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec is_valid(txn_state_channel_close(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 is_valid(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     Closer = ?MODULE:closer(Txn),
@@ -142,7 +142,7 @@ is_valid(Txn, Chain) ->
             end
     end.
 
--spec absorb(txn_state_channel_close(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec absorb(txn_state_channel_close(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     AreFeesEnabled = blockchain_ledger_v1:txn_fees_active(Ledger),

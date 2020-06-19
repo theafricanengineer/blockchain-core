@@ -78,7 +78,7 @@ fee(_Txn) ->
 %% This transaction is only allowed in the genesis block
 %% @end
 %%--------------------------------------------------------------------
--spec is_valid(txn_token_burn_exchange_rate(), blockchain:blockchain()) -> {error, any()}.
+-spec is_valid(txn_token_burn_exchange_rate(), blockchain:blockchain()) -> {error, atom()} | {error, {atom(), any()}}.
 is_valid(_Txn, _Chain) ->
     {error, not_implemented}.
     % Amount = ?MODULE:rate(Txn),
@@ -93,7 +93,7 @@ is_valid(_Txn, _Chain) ->
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec absorb(txn_token_burn_exchange_rate(), blockchain:blockchain()) -> ok | {error, any()}.
+-spec absorb(txn_token_burn_exchange_rate(), blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     Rate = ?MODULE:rate(Txn),

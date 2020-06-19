@@ -190,7 +190,7 @@ calculate_staking_fee(#blockchain_txn_routing_v1_pb{}, _Chain, true) ->
 %% @end
 %%--------------------------------------------------------------------
 -spec is_valid(txn_routing(),
-               blockchain:blockchain()) -> ok | {error, any()}.
+               blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 is_valid(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     OUI = ?MODULE:oui(Txn),
@@ -254,7 +254,7 @@ is_valid(Txn, Chain) ->
 %% @end
 %%--------------------------------------------------------------------
 -spec absorb(txn_routing(),
-             blockchain:blockchain()) -> ok | {error, any()}.
+             blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     TxnFee = ?MODULE:fee(Txn),
@@ -363,7 +363,7 @@ validate_addresses(Addresses) ->
                          MinSubnetSize :: pos_integer(),
                          MaxSubnetSize :: pos_integer(),
                          MaxSubnetNum :: pos_integer(),
-                         Chain :: blockchain:blockchain()) -> ok | {error, any()}.
+                         Chain :: blockchain:blockchain()) -> ok | {error, atom()} | {error, {atom(), any()}}.
 do_is_valid_checks(Txn, Ledger, Routing, XORFilterSize, XORFilterNum, MinSubnetSize, MaxSubnetSize, MaxSubnetNum, Chain) ->
     case ?MODULE:action(Txn) of
         {update_routers, Addresses} ->
