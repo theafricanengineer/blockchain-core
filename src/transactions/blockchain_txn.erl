@@ -287,9 +287,12 @@ separate_res([{T, ok} | Rest], Chain, V, I) ->
     case ?MODULE:absorb(T, Chain) of
         ok ->
             separate_res(Rest, Chain, [T|V], I);
-        {error, _Reason} ->
-            lager:warning("invalid txn while absorbing ~p : ~p / ~s", [type(T), _Reason, print(T)]),
-            separate_res(Rest, Chain, V, [T | I])
+        {error, {Reason, _Details}} = Error ->
+            lager:warning("invalid txn while absorbing ~p : ~p / ~s", [type(T), Error, print(T)]),
+            separate_res(Rest, Chain, V, [{T, Reason} | I]);
+        {error, Reason} ->
+            lager:warning("invalid txn while absorbing ~p : ~p / ~s", [type(T), Reason, print(T)]),
+            separate_res(Rest, Chain, V, [{T, Reason} | I])
     end;
 separate_res([{T, Err} | Rest], Chain, V, I) ->
     case Err of
