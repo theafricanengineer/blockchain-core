@@ -192,7 +192,7 @@ do_is_valid_checks(Txn, Chain) ->
                             case blockchain_ledger_v1:find_routing(OUI, Ledger) of
                                 {error, not_found} ->
                                     lager:error("oui: ~p not found for this router: ~p", [OUI, Owner]),
-                                    {error, {not_found, OUI, Owner}};
+                                    {error, {not_found, {OUI, Owner}}};
                                 {ok, Routing} ->
                                     KnownRouters = blockchain_ledger_routing_v1:addresses(Routing),
                                     case lists:member(Owner, KnownRouters) of
