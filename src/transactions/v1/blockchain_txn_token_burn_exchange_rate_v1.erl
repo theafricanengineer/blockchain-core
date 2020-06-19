@@ -6,6 +6,10 @@
 %%%-------------------------------------------------------------------
 -module(blockchain_txn_token_burn_exchange_rate_v1).
 
+%%
+%% TODO: if this txn type has never been used we should remove this module and associated code
+%%
+
 -behavior(blockchain_txn).
 
 -behavior(blockchain_json).
