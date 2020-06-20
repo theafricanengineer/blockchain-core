@@ -912,6 +912,9 @@ validate_var(?txn_fee_multiplier, Value) ->
     %% a multiplier applied to txn fee, in DC
     validate_int(Value, "txn_fee_multiplier", 1, 65536, false);
 
+validate_var(?assert_loc_txn_ver, Value) ->
+    %% Allowed assert location txn version(s)
+    validate_int(Value, "assert_loc_txn_ver", 1, 10, false);
 
 validate_var(Var, Value) ->
     %% something we don't understand, crash
