@@ -330,8 +330,3 @@
 -define(staking_fee_txn_assert_location_v1, staking_fee_txn_assert_location_v1).
 %% a mutliplier which will be applied to the txn fee of all txns, in order to make their DC costs meaningful
 -define(txn_fee_multiplier, txn_fee_multiplier).
-
-
-%% ------------------------------------------------------------------
-%% assert location txn version
--define(assert_loc_txn_ver, assert_loc_txn_ver).
