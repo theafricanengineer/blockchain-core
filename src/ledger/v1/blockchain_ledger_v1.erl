@@ -1858,7 +1858,7 @@ debit_fee(Address, Fee, Ledger, MaybeTryImplicitBurn) ->
                     {ok, FeeInHNT} = ?MODULE:dc_to_hnt(Fee, Ledger),
                     ?MODULE:debit_fee_from_account(Address, FeeInHNT, Ledger);
                 {false, false} ->
-                    {error, {insufficient_balance, {Fee, Balance}}}
+                    {error, {insufficient_dc_balance, {Fee, Balance}}}
             end
     end.
 
