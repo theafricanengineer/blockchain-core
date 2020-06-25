@@ -360,19 +360,29 @@ legacy_is_valid(Txn, Chain) ->
             _ ->
                 case blockchain:config(?use_multi_keys, Ledger) of
                     {ok, true} ->
-                        {ok, MasterKeys} = blockchain_ledger_v1:multi_keys(Ledger),
-                        Proofs = multi_proofs(Txn),
-                        Votes =
-                            lists:sum(
-                              [case verify_key(Artifact, MasterKey, Proof) of
-                                   true -> 1;
-                                   _ -> 0
-                               end
-                               || {MasterKey, Proof} <- lists:zip(MasterKeys, Proofs)]),
-                        Majority = majority(length(MasterKeys)),
-                        case Votes >= Majority of
-                            true -> ok;
-                            false -> throw({error, {insufficient_votes, Votes, Majority}})
+                        %% handle the case where this gets set before
+                        %% the keys are set
+                        case blockchain_ledger_v1:multi_keys(Ledger) of
+                            {ok, MasterKeys} ->
+                                Proofs = multi_proofs(Txn),
+                                Votes =
+                                    lists:sum(
+                                      [case verify_key(Artifact, MasterKey, Proof) of
+                                           true -> 1;
+                                           _ -> 0
+                                       end
+                                       || {MasterKey, Proof} <- lists:zip(MasterKeys, Proofs)]),
+                                Majority = majority(length(MasterKeys)),
+                                case Votes >= Majority of
+                                    true -> ok;
+                                    false -> throw({error, {insufficient_votes, Votes, Majority}})
+                                end;
+                            {error, not_found} ->
+                                {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
+                                case verify_key(Artifact, MasterKey, proof(Txn)) of
+                                    true -> ok;
+                                    _ -> throw({error, bad_block_proof})
+                                end
                         end;
                     _ ->
                         {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
@@ -985,6 +995,12 @@ validate_var(?txn_fee_multiplier, Value) ->
     %% a multiplier applied to txn fee, in DC
     validate_int(Value, "txn_fee_multiplier", 1, 65536, false);
 
+validate_var(?use_multi_keys, Value) ->
+    case Value of
+        true -> ok;
+        false -> ok;
+        _ -> throw({error, {invalid_multi_keys, Value}})
+    end;
 
 validate_var(Var, Value) ->
     %% something we don't understand, crash
