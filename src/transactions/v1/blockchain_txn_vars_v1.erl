@@ -277,16 +277,10 @@ is_valid(Txn, Chain) ->
                                 %% handle the case where this gets set before
                                 %% the keys are set
                                 case blockchain_ledger_v1:multi_keys(Ledger) of
-                                    {ok, MasterKeys} ->
+                                    {ok, MultiKeys} ->
                                         Proofs = multi_proofs(Txn),
-                                        Votes =
-                                            lists:sum(
-                                              [case verify_key(Artifact, MasterKey, Proof) of
-                                                   true -> 1;
-                                                   _ -> 0
-                                               end
-                                               || {MasterKey, Proof} <- lists:zip(MasterKeys, Proofs)]),
-                                        Majority = majority(length(MasterKeys)),
+                                        Votes = count_votes(Artifact, MultiKeys, Proofs),
+                                        Majority = majority(length(MultiKeys)),
                                         case Votes >= Majority of
                                             true -> ok;
                                             false -> throw({error, {insufficient_votes, Votes, Majority}})
@@ -463,6 +457,24 @@ validate_master_keys(Txn, Gen, Artifact, Ledger) ->
                             throw({error, bad_master_key})
                     end
             end
+    end.
+
+count_votes(Artifact, MultiKeys, Proofs) ->
+    count_votes(Artifact, MultiKeys, Proofs, 0).
+
+count_votes(_Artifact, _MultiKeys, [], Acc) ->
+    Acc;
+count_votes(Artifact, MultiKeys, [Proof | Proofs], Acc) ->
+    case lists:filter(
+           fun(Key) ->
+                   verify_key(Artifact, Key, Proof)
+           end, MultiKeys) of
+        %% proof didn't match any keys
+        [] ->
+            count_votes(Artifact, MultiKeys, Proofs, Acc);
+        [GoodKey] ->
+            count_votes(Artifact, lists:delete(GoodKey, MultiKeys),
+                        Proofs, Acc + 1)
     end.
 
 majority(N) ->
