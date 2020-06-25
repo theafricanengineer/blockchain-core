@@ -203,7 +203,9 @@ multi_proofs(Txn, Proofs) ->
 
 unset_proofs(Txn) ->
     Txn#blockchain_txn_vars_v1_pb{proof = <<>>,
-                                  key_proof = <<>>}.
+                                  key_proof = <<>>,
+                                  multi_proofs = [],
+                                  multi_key_proofs = []}.
 
 vars(Txn) ->
     Txn#blockchain_txn_vars_v1_pb.vars.
