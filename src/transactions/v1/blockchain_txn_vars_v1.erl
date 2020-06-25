@@ -438,7 +438,8 @@ validate_master_keys(Txn, Gen, Artifact, Ledger) ->
                          _ ->
                              throw({error, bad_multi_key_proof})
                      end
-                     || {Key, KeyProof} <- lists:zip(MultiKeys, KeyProofs)]
+                     || {Key, KeyProof} <- lists:zip(MultiKeys, KeyProofs)],
+                    ok
             end;
         _ ->
             case master_key(Txn) of
