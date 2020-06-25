@@ -539,11 +539,21 @@ delayed_absorb(Txn, Ledger) ->
     Vars = decode_vars(vars(Txn)),
     Unsets = decode_unsets(unsets(Txn)),
     ok = blockchain_ledger_v1:vars(Vars, Unsets, Ledger),
-    case master_key(Txn) of
-        <<>> ->
-            ok;
-        Key ->
-            ok = blockchain_ledger_v1:master_key(Key, Ledger)
+    case blockchain:config(?use_multi_keys, Ledger) of
+        {ok, true} ->
+            case multi_keys(Txn) of
+                [] ->
+                    ok;
+                Keys ->
+                    ok = blockchain_ledger_v1:multi_keys(Keys, Ledger)
+            end;
+        _ ->
+            case master_key(Txn) of
+                <<>> ->
+                    ok;
+                Key ->
+                    ok = blockchain_ledger_v1:master_key(Key, Ledger)
+            end
     end.
 
 sum_higher(Target, Proplist) ->
@@ -566,10 +576,14 @@ decode_unsets(Unsets) ->
 print(undefined) -> <<"type=vars undefined">>;
 print(#blockchain_txn_vars_v1_pb{vars = Vars, version_predicate = VersionP,
                                  master_key = MasterKey, key_proof = KeyProof,
+                                 multi_keys = MultiKeys, multi_key_proofs = MultiKeyProofs,
                                  unsets = Unsets, cancels = Cancels,
                                  nonce = Nonce}) ->
-    io_lib:format("type=vars vars=~p version_predicate=~p master_key=~p key_proof=~p unsets=~p cancels=~p nonce=~p",
-                  [Vars, VersionP, MasterKey, KeyProof, Unsets, Cancels, Nonce]).
+    io_lib:format("type=vars vars=~p version_predicate=~p master_key=~p key_proof=~p "
+                  "multi_keys=~p multi_key_proofs=~p unsets=~p cancels=~p nonce=~p",
+                  [Vars, VersionP, MasterKey, KeyProof,
+                   MultiKeys, MultiKeyProofs,
+                   Unsets, Cancels, Nonce]).
 
 -spec to_json(txn_vars(), blockchain_json:opts()) -> blockchain_json:json_object().
 to_json(Txn, _Opts) ->
