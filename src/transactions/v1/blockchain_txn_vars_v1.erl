@@ -97,6 +97,7 @@ new(Vars, Nonce) ->
 new(Vars, Nonce, Optional) ->
     VersionP = maps:get(version_predicate, Optional, 0),
     MasterKey = maps:get(master_key, Optional, <<>>),
+    MultiKeys = maps:get(multi_keys, Optional, []),
     MultiKeyProofs = maps:get(multi_key_proofs, Optional, []),
     KeyProof = maps:get(key_proof, Optional, <<>>),
     Unsets = maps:get(unsets, Optional, []),
@@ -104,7 +105,6 @@ new(Vars, Nonce, Optional) ->
     %% note that string inputs are normalized on creation, which has
     %% an effect on proof encoding :/
 
-    {MultiKeys, KeyProofs} = lists:unzip(lists:sort(MultiKeyProofs)),
     #blockchain_txn_vars_v1_pb{vars = lists:sort(encode_vars(Vars)),
                                version_predicate = VersionP,
                                unsets = encode_unsets(Unsets),
@@ -113,7 +113,7 @@ new(Vars, Nonce, Optional) ->
                                master_key = MasterKey,
                                key_proof = KeyProof,
                                multi_keys = MultiKeys,
-                               multi_key_proofs = KeyProofs}.
+                               multi_key_proofs = MultiKeyProofs}.
 
 encode_vars(Vars) ->
     V = maps:to_list(Vars),
