@@ -272,12 +272,40 @@ is_valid(Txn, Chain) ->
                         %% validated the proof if it has made it here.
                         ok;
                     _ ->
-                        {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
-                        case verify_key(Artifact, MasterKey, proof(Txn)) of
-                            true ->
-                                ok;
+                        case blockchain:config(?use_multi_keys, Ledger) of
+                            {ok, true} ->
+                                %% handle the case where this gets set before
+                                %% the keys are set
+                                case blockchain_ledger_v1:multi_keys(Ledger) of
+                                    {ok, MasterKeys} ->
+                                        Proofs = multi_proofs(Txn),
+                                        Votes =
+                                            lists:sum(
+                                              [case verify_key(Artifact, MasterKey, Proof) of
+                                                   true -> 1;
+                                                   _ -> 0
+                                               end
+                                               || {MasterKey, Proof} <- lists:zip(MasterKeys, Proofs)]),
+                                        Majority = majority(length(MasterKeys)),
+                                        case Votes >= Majority of
+                                            true -> ok;
+                                            false -> throw({error, {insufficient_votes, Votes, Majority}})
+                                        end;
+                                    {error, not_found} ->
+                                        {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
+                                        case verify_key(Artifact, MasterKey, proof(Txn)) of
+                                            true -> ok;
+                                            _ -> throw({error, bad_block_proof})
+                                        end
+                                end;
                             _ ->
-                                throw({error, bad_block_proof})
+                                {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
+                                case verify_key(Artifact, MasterKey, proof(Txn)) of
+                                    true ->
+                                        ok;
+                                    _ ->
+                                        throw({error, bad_block_proof})
+                                end
                         end
                 end,
                 %% NB: validation errors MUST throw
@@ -360,38 +388,10 @@ legacy_is_valid(Txn, Chain) ->
                 %% validated the proof if it has made it here.
                 ok;
             _ ->
-                case blockchain:config(?use_multi_keys, Ledger) of
-                    {ok, true} ->
-                        %% handle the case where this gets set before
-                        %% the keys are set
-                        case blockchain_ledger_v1:multi_keys(Ledger) of
-                            {ok, MasterKeys} ->
-                                Proofs = multi_proofs(Txn),
-                                Votes =
-                                    lists:sum(
-                                      [case verify_key(Artifact, MasterKey, Proof) of
-                                           true -> 1;
-                                           _ -> 0
-                                       end
-                                       || {MasterKey, Proof} <- lists:zip(MasterKeys, Proofs)]),
-                                Majority = majority(length(MasterKeys)),
-                                case Votes >= Majority of
-                                    true -> ok;
-                                    false -> throw({error, {insufficient_votes, Votes, Majority}})
-                                end;
-                            {error, not_found} ->
-                                {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
-                                case verify_key(Artifact, MasterKey, proof(Txn)) of
-                                    true -> ok;
-                                    _ -> throw({error, bad_block_proof})
-                                end
-                        end;
-                    _ ->
-                        {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
-                        case verify_key(Artifact, MasterKey, proof(Txn)) of
-                            true -> ok;
-                            _ -> throw({error, bad_block_proof})
-                        end
+                {ok, MasterKey} = blockchain_ledger_v1:master_key(Ledger),
+                case verify_key(Artifact, MasterKey, proof(Txn)) of
+                    true -> ok;
+                    _ -> throw({error, bad_block_proof})
                 end
         end,
         lists:foreach(
