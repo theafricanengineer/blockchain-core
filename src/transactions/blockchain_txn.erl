@@ -261,12 +261,13 @@ validate([Txn | Tail] = Txns, Valid, Invalid, PType, PBuf, Chain) ->
                 {error, InvalidReason}=Error when is_atom(InvalidReason) ->
                     lager:warning("invalid txn ~p : ~p / ~s", [Type, Error, print(Txn)]),
                     %% any other error means we drop it
-                    validate(Tail, Valid, [{Txn, InvalidReason} | Invalid], PType, PBuf, Chain)
-%% TMP DISABLE CATCH ALL ERROR BELOW TO ROOT OUT ANY MISSED NON EXPECTED ERROR MSG CONVENTIONS
-%%                Error ->
-%%                    lager:warning("invalid txn ~p : ~p / ~s", [Type, Error, print(Txn)]),
-%%                    %% any other error means we drop it
-%%                    validate(Tail, Valid, [{Txn, Error} | Invalid], PType, PBuf, Chain)
+                    validate(Tail, Valid, [{Txn, InvalidReason} | Invalid], PType, PBuf, Chain);
+                Error ->
+                    lager:warning("invalid txn ~p : ~p / ~s", [Type, Error, print(Txn)]),
+                    %% any other error means we drop it
+                    %% this error is unexpected and could be a crash report or some other weirdness
+                    %% we will use a generic error reason
+                    validate(Tail, Valid, [{Txn, validation_failed} | Invalid], PType, PBuf, Chain)
             end;
         _Else ->
             Res = blockchain_utils:pmap(
