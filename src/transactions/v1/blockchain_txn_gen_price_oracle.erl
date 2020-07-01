@@ -126,11 +126,8 @@ to_json(Txn, _Opts) ->
 -ifdef(TEST).
 
 new_test() ->
-    Tx = #blockchain_txn_gen_gateway_v1_pb{gateway = <<"0">>,
-                                           owner = <<"1">>,
-                                           location = h3:to_string(?TEST_LOCATION),
-                                           nonce=10},
-    ?assertEqual(Tx, new(<<"0">>, <<"1">>, ?TEST_LOCATION, 10)).
+    Tx = #blockchain_txn_gen_price_oracle_v1_pb{price = 10},
+    ?assertEqual(Tx, new(10)).
 
 price_test() ->
     Tx = new(10),
