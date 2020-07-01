@@ -100,7 +100,7 @@ is_valid(_Txn, Chain) ->
 absorb(Txn, Chain) ->
     Ledger = blockchain:ledger(Chain),
     Price = ?MODULE:price(Txn),
-    blockchain_ledger_v1:set_oracle_price(Price, Ledger).
+    blockchain_ledger_v1:load_oracle_price(Price, Ledger).
 
 %%--------------------------------------------------------------------
 %% @doc
